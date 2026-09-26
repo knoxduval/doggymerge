@@ -1,0 +1,11 @@
+{
+  "name": "doggymerge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pick two dog breeds, merge them into a new breed with an AI-generated picture, and collect them.",
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "test": "node --test tests/*.test.mjs"
+  }
+}

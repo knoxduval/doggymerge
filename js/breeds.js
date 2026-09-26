@@ -1,0 +1,178 @@
+// Breed catalogue.
+// Each entry: [name, group, size (1 = tiny … 5 = giant), [temperament traits], coat/look description]
+// The coat/look text feeds the image prompt so merged dogs inherit visible features.
+const RAW = [
+  // Sporting
+  ["Labrador Retriever", "Sporting", 4, ["friendly", "outgoing", "eager"], "short dense coat in yellow, black or chocolate, otter tail, broad head"],
+  ["Golden Retriever", "Sporting", 4, ["gentle", "devoted", "playful"], "long wavy golden coat with feathering, soft expression"],
+  ["Chesapeake Bay Retriever", "Sporting", 4, ["loyal", "brave", "hardy"], "wavy oily brown coat, amber eyes"],
+  ["Flat-Coated Retriever", "Sporting", 4, ["cheerful", "optimistic", "lively"], "glossy flat black coat, long head"],
+  ["Nova Scotia Duck Tolling Retriever", "Sporting", 3, ["clever", "alert", "affectionate"], "medium red-orange coat with white markings"],
+  ["Cocker Spaniel", "Sporting", 2, ["merry", "gentle", "smart"], "silky long ears, feathered coat, round eyes"],
+  ["English Cocker Spaniel", "Sporting", 2, ["merry", "busy", "affectionate"], "silky roan or solid coat, long feathered ears"],
+  ["English Springer Spaniel", "Sporting", 3, ["friendly", "eager", "obedient"], "liver and white feathered coat, long ears"],
+  ["Field Spaniel", "Sporting", 3, ["sweet", "sensitive", "fun-loving"], "glossy black or liver coat, long low body, feathered ears"],
+  ["Brittany", "Sporting", 3, ["bright", "upbeat", "athletic"], "orange and white coat, short tail, lean build"],
+  ["German Shorthaired Pointer", "Sporting", 4, ["friendly", "smart", "energetic"], "short liver-ticked coat, lean athletic body"],
+  ["German Wirehaired Pointer", "Sporting", 4, ["affectionate", "eager", "tireless"], "wiry liver and white coat, bearded muzzle"],
+  ["English Pointer", "Sporting", 4, ["even-tempered", "alert", "loyal"], "short sleek white coat with patches, chiseled head"],
+  ["Weimaraner", "Sporting", 4, ["friendly", "fearless", "obedient"], "sleek silver-gray coat, light amber eyes"],
+  ["Vizsla", "Sporting", 4, ["affectionate", "gentle", "energetic"], "short golden-rust coat, lean elegant body"],
+  ["Irish Setter", "Sporting", 4, ["outgoing", "sweet", "active"], "long flowing mahogany red coat"],
+  ["English Setter", "Sporting", 4, ["mellow", "friendly", "merry"], "white feathered coat with speckled belton markings"],
+  ["Gordon Setter", "Sporting", 4, ["bold", "confident", "loyal"], "long black and tan feathered coat"],
+  ["Wirehaired Pointing Griffon", "Sporting", 3, ["friendly", "devoted", "trainable"], "harsh steel-gray and brown shaggy coat, moustache"],
+  ["Spinone Italiano", "Sporting", 4, ["docile", "patient", "sociable"], "wiry white and orange coat, bushy eyebrows"],
+  ["Lagotto Romagnolo", "Sporting", 3, ["affectionate", "keen", "loyal"], "dense woolly curly coat, rounded head"],
+
+  // Hound
+  ["Beagle", "Hound", 2, ["merry", "curious", "friendly"], "short tricolor coat, long floppy ears, big brown eyes"],
+  ["Basset Hound", "Hound", 3, ["patient", "low-key", "charming"], "short tricolor coat, very long droopy ears, short legs, long body"],
+  ["Bloodhound", "Hound", 5, ["gentle", "stubborn", "independent"], "loose wrinkled skin, droopy face, long ears, black and tan"],
+  ["Dachshund", "Hound", 2, ["clever", "brave", "lively"], "long low body, short legs, red or black and tan coat"],
+  ["Greyhound", "Hound", 4, ["gentle", "independent", "noble"], "very lean aerodynamic body, deep chest, short sleek coat"],
+  ["Whippet", "Hound", 3, ["calm", "affectionate", "playful"], "slender body, short fine coat, long legs"],
+  ["Italian Greyhound", "Hound", 1, ["sensitive", "alert", "playful"], "tiny slender body, fine short gray coat"],
+  ["Afghan Hound", "Hound", 4, ["dignified", "aloof", "silly"], "long silky flowing coat, topknot, elegant face"],
+  ["Saluki", "Hound", 4, ["gentle", "dignified", "independent"], "slim graceful body, feathered ears and tail"],
+  ["Borzoi", "Hound", 5, ["quiet", "affectionate", "athletic"], "long narrow head, silky wavy white coat"],
+  ["Irish Wolfhound", "Hound", 5, ["calm", "dignified", "courageous"], "enormous size, rough wiry gray coat, bearded face"],
+  ["Scottish Deerhound", "Hound", 5, ["gentle", "dignified", "polite"], "tall lanky body, harsh blue-gray coat"],
+  ["Rhodesian Ridgeback", "Hound", 4, ["dignified", "affectionate", "strong-willed"], "short wheaten coat with ridge of hair along back"],
+  ["Basenji", "Hound", 2, ["independent", "smart", "poised"], "short copper coat, tightly curled tail, wrinkled forehead"],
+  ["Norwegian Elkhound", "Hound", 3, ["bold", "friendly", "dependable"], "thick silver-gray coat, curled tail"],
+  ["Pharaoh Hound", "Hound", 3, ["friendly", "smart", "noble"], "sleek tan coat, large upright ears, amber eyes"],
+  ["Redbone Coonhound", "Hound", 4, ["even-tempered", "amiable", "eager"], "short glossy deep red coat, long ears"],
+  ["Bluetick Coonhound", "Hound", 4, ["smart", "devoted", "vocal"], "mottled blue-ticked coat with black spots"],
+  ["Black and Tan Coonhound", "Hound", 4, ["easygoing", "friendly", "brave"], "black coat with tan points, long ears"],
+  ["Treeing Walker Coonhound", "Hound", 4, ["smart", "brave", "sociable"], "short tricolor coat, long ears"],
+  ["American Foxhound", "Hound", 4, ["sweet", "independent", "easygoing"], "short tricolor coat, long legs"],
+  ["Petit Basset Griffon Vendéen", "Hound", 2, ["happy", "curious", "vivacious"], "shaggy rough white coat with patches, long body"],
+  ["Sloughi", "Hound", 4, ["reserved", "loyal", "gentle"], "short sandy coat, lean elegant body, dark eyes"],
+
+  // Working
+  ["Siberian Husky", "Working", 4, ["loyal", "mischievous", "outgoing"], "thick gray and white coat, striking blue eyes, wolf-like face mask"],
+  ["Alaskan Malamute", "Working", 5, ["affectionate", "loyal", "playful"], "heavy gray and white coat, plumed tail, strong build"],
+  ["Samoyed", "Working", 4, ["adaptable", "friendly", "gentle"], "fluffy brilliant white coat, smiling face"],
+  ["Akita", "Working", 5, ["courageous", "dignified", "profoundly loyal"], "thick coat, broad bear-like head, curled tail"],
+  ["Bernese Mountain Dog", "Working", 5, ["good-natured", "calm", "strong"], "long silky tricolor coat in black, rust and white"],
+  ["Great Pyrenees", "Working", 5, ["smart", "patient", "calm"], "thick fluffy white coat, majestic size"],
+  ["Greater Swiss Mountain Dog", "Working", 5, ["faithful", "family-oriented", "dependable"], "short dense tricolor coat, powerful body"],
+  ["Saint Bernard", "Working", 5, ["playful", "charming", "inquisitive"], "huge body, red and white coat, massive head"],
+  ["Newfoundland", "Working", 5, ["sweet", "patient", "devoted"], "massive body, thick black water-resistant coat"],
+  ["Great Dane", "Working", 5, ["friendly", "patient", "dependable"], "towering frame, short sleek fawn or harlequin coat, square muzzle"],
+  ["Mastiff", "Working", 5, ["courageous", "dignified", "good-natured"], "massive body, fawn coat, black wrinkled face mask"],
+  ["Bullmastiff", "Working", 5, ["affectionate", "loyal", "brave"], "powerful body, short fawn coat, dark muzzle"],
+  ["Neapolitan Mastiff", "Working", 5, ["watchful", "dignified", "loyal"], "huge body with heavy loose wrinkles, gray coat"],
+  ["Cane Corso", "Working", 5, ["affectionate", "intelligent", "majestic"], "muscular body, short black or gray coat, large head"],
+  ["Rottweiler", "Working", 5, ["loyal", "loving", "confident"], "muscular body, short black coat with rust markings"],
+  ["Doberman Pinscher", "Working", 4, ["loyal", "fearless", "alert"], "sleek muscular body, black and rust coat, long muzzle"],
+  ["Boxer", "Working", 4, ["fun-loving", "bright", "active"], "short fawn coat, square jaw, black mask, athletic"],
+  ["Giant Schnauzer", "Working", 5, ["loyal", "alert", "trainable"], "wiry black coat, bushy beard and eyebrows"],
+  ["Standard Schnauzer", "Working", 3, ["smart", "fearless", "spirited"], "wiry salt-and-pepper coat, beard and eyebrows"],
+  ["Portuguese Water Dog", "Working", 3, ["affectionate", "adventurous", "athletic"], "curly or wavy black coat"],
+  ["Leonberger", "Working", 5, ["friendly", "gentle", "playful"], "lion-like golden mane, black mask, huge size"],
+  ["Dogue de Bordeaux", "Working", 5, ["loyal", "affectionate", "courageous"], "massive wrinkled head, short mahogany coat"],
+  ["Anatolian Shepherd", "Working", 5, ["loyal", "independent", "calm"], "short fawn coat, black mask, rugged build"],
+  ["Tibetan Mastiff", "Working", 5, ["independent", "reserved", "protective"], "huge lion-like mane, thick black and tan coat"],
+  ["Kuvasz", "Working", 5, ["loyal", "patient", "protective"], "wavy white coat, large sturdy body"],
+
+  // Terrier
+  ["Jack Russell Terrier", "Terrier", 2, ["energetic", "fearless", "clever"], "small white body with tan patches, smooth coat"],
+  ["Yorkshire Terrier", "Toy", 1, ["sprightly", "tomboyish", "affectionate"], "long silky steel-blue and tan coat, tiny body"],
+  ["West Highland White Terrier", "Terrier", 2, ["happy", "loyal", "entertaining"], "harsh white coat, carrot-shaped tail, bright eyes"],
+  ["Scottish Terrier", "Terrier", 2, ["confident", "independent", "spirited"], "wiry black coat, beard, short legs"],
+  ["Cairn Terrier", "Terrier", 2, ["alert", "cheerful", "busy"], "shaggy wheaten coat, fox-like face"],
+  ["Airedale Terrier", "Terrier", 4, ["friendly", "clever", "courageous"], "wiry tan and black coat, long head, beard"],
+  ["Bull Terrier", "Terrier", 3, ["playful", "charming", "mischievous"], "egg-shaped head, short white coat, small eyes"],
+  ["Staffordshire Bull Terrier", "Terrier", 3, ["brave", "tenacious", "affectionate"], "muscular stocky body, short brindle coat"],
+  ["American Staffordshire Terrier", "Terrier", 3, ["confident", "smart", "good-natured"], "muscular body, broad head, short coat"],
+  ["American Pit Bull Terrier", "Terrier", 3, ["loving", "loyal", "confident"], "muscular athletic body, broad head, short glossy coat"],
+  ["Miniature Schnauzer", "Terrier", 2, ["friendly", "smart", "obedient"], "wiry salt-and-pepper coat, bushy beard and eyebrows"],
+  ["Soft Coated Wheaten Terrier", "Terrier", 3, ["happy", "friendly", "deeply devoted"], "soft silky wavy wheat-colored coat"],
+  ["Border Terrier", "Terrier", 2, ["affectionate", "happy", "plucky"], "wiry grizzle and tan coat, otter-like head"],
+  ["Wire Fox Terrier", "Terrier", 2, ["confident", "gregarious", "alert"], "wiry white coat with tan and black patches"],
+  ["Rat Terrier", "Terrier", 2, ["friendly", "inquisitive", "lovable"], "short smooth tricolor coat, upright ears"],
+  ["Bedlington Terrier", "Terrier", 2, ["loyal", "charming", "frolicking"], "lamb-like curly coat, pear-shaped head"],
+  ["Kerry Blue Terrier", "Terrier", 3, ["alert", "adaptable", "people-oriented"], "soft wavy blue-gray coat, beard"],
+  ["Australian Terrier", "Terrier", 2, ["spirited", "alert", "courageous"], "rough blue and tan coat, ruff around neck"],
+  ["Norwich Terrier", "Terrier", 1, ["fearless", "happy", "affectionate"], "wiry red coat, pricked ears"],
+
+  // Toy
+  ["Chihuahua", "Toy", 1, ["charming", "graceful", "sassy"], "tiny body, apple-shaped head, big upright ears, large eyes"],
+  ["Pomeranian", "Toy", 1, ["inquisitive", "bold", "lively"], "tiny body, huge fluffy orange double coat, fox-like face"],
+  ["Shih Tzu", "Toy", 1, ["affectionate", "playful", "outgoing"], "long flowing silky coat, short muzzle, topknot"],
+  ["Maltese", "Toy", 1, ["gentle", "playful", "charming"], "long silky pure white coat, dark round eyes"],
+  ["Pug", "Toy", 1, ["charming", "mischievous", "loving"], "wrinkled flat face, curled tail, fawn coat, black mask"],
+  ["Cavalier King Charles Spaniel", "Toy", 2, ["affectionate", "gentle", "graceful"], "silky Blenheim chestnut and white coat, long feathered ears, big eyes"],
+  ["Papillon", "Toy", 1, ["happy", "alert", "friendly"], "butterfly-shaped fringed ears, white and colored coat"],
+  ["Havanese", "Toy", 1, ["intelligent", "outgoing", "funny"], "long silky wavy coat, dark eyes"],
+  ["Toy Poodle", "Toy", 1, ["agile", "intelligent", "self-confident"], "tiny body, dense curly coat"],
+  ["Miniature Pinscher", "Toy", 1, ["fearless", "fun-loving", "proud"], "sleek small body, black and rust coat, high-stepping"],
+  ["Pekingese", "Toy", 1, ["affectionate", "loyal", "regal"], "flat face, lion-like mane, long flowing coat"],
+  ["Brussels Griffon", "Toy", 1, ["loyal", "curious", "alert"], "bearded almost human-like face, wiry red coat"],
+  ["Japanese Chin", "Toy", 1, ["charming", "noble", "loving"], "flat face, silky black and white coat, large eyes"],
+  ["Chinese Crested", "Toy", 1, ["lively", "happy", "alert"], "mostly hairless body with silky crest, socks and plumed tail"],
+  ["Affenpinscher", "Toy", 1, ["confident", "funny", "fearless"], "monkey-like face, shaggy wiry black coat"],
+  ["Silky Terrier", "Toy", 1, ["friendly", "quick", "alert"], "long silky blue and tan coat"],
+
+  // Non-Sporting
+  ["Poodle", "Non-Sporting", 4, ["intelligent", "proud", "active"], "dense tightly curled coat, elegant long legs"],
+  ["Miniature Poodle", "Non-Sporting", 2, ["intelligent", "active", "affectionate"], "dense curly coat, small elegant body"],
+  ["French Bulldog", "Non-Sporting", 2, ["adaptable", "playful", "smart"], "bat-like upright ears, flat face, compact muscular body"],
+  ["Bulldog", "Non-Sporting", 3, ["friendly", "courageous", "calm"], "loose wrinkled face, pushed-in nose, stocky wide body, underbite"],
+  ["Boston Terrier", "Non-Sporting", 2, ["friendly", "bright", "amusing"], "tuxedo black and white coat, large round eyes, short muzzle"],
+  ["Dalmatian", "Non-Sporting", 4, ["dignified", "smart", "outgoing"], "short white coat covered in black spots"],
+  ["Bichon Frise", "Non-Sporting", 1, ["playful", "curious", "peppy"], "fluffy powder-puff white curly coat"],
+  ["Chow Chow", "Non-Sporting", 4, ["dignified", "bright", "serious"], "lion-like red mane, blue-black tongue, deep-set eyes"],
+  ["Shiba Inu", "Non-Sporting", 2, ["alert", "active", "attentive"], "fox-like red coat, curled tail, triangular ears"],
+  ["Lhasa Apso", "Non-Sporting", 1, ["confident", "smart", "comical"], "long straight heavy coat, parted down the middle"],
+  ["Shar-Pei", "Non-Sporting", 3, ["loyal", "independent", "calm"], "deep loose wrinkles, hippo-shaped muzzle, bristly coat"],
+  ["Keeshond", "Non-Sporting", 3, ["friendly", "lively", "outgoing"], "plush silver-gray coat, spectacle markings"],
+  ["Schipperke", "Non-Sporting", 2, ["curious", "confident", "mischievous"], "black fox-like face, ruffled black coat"],
+  ["Tibetan Terrier", "Non-Sporting", 2, ["affectionate", "loyal", "sensitive"], "long shaggy coat, fall of hair over eyes"],
+  ["American Eskimo Dog", "Non-Sporting", 2, ["playful", "perky", "smart"], "fluffy white coat, lion-like ruff"],
+  ["Xoloitzcuintli", "Non-Sporting", 3, ["loyal", "alert", "calm"], "hairless dark gray skin, large bat ears"],
+
+  // Herding
+  ["German Shepherd", "Herding", 4, ["confident", "courageous", "smart"], "black and tan saddle coat, pointed ears, strong athletic body"],
+  ["Border Collie", "Herding", 3, ["affectionate", "smart", "energetic"], "medium-length black and white coat, intense eyes"],
+  ["Australian Shepherd", "Herding", 3, ["smart", "work-oriented", "exuberant"], "blue merle coat, one blue and one brown eye"],
+  ["Miniature American Shepherd", "Herding", 2, ["intelligent", "devoted", "energetic"], "merle coat, small agile body"],
+  ["Pembroke Welsh Corgi", "Herding", 2, ["affectionate", "smart", "alert"], "short legs, long body, fox-like red and white coat, big upright ears"],
+  ["Cardigan Welsh Corgi", "Herding", 2, ["affectionate", "loyal", "smart"], "short legs, long body, brushy tail, merle coat"],
+  ["Shetland Sheepdog", "Herding", 2, ["playful", "energetic", "bright"], "long sable and white coat, lion-like mane, delicate face"],
+  ["Rough Collie", "Herding", 4, ["devoted", "graceful", "proud"], "long flowing sable and white coat, narrow elegant face"],
+  ["Old English Sheepdog", "Herding", 4, ["adaptable", "gentle", "smart"], "huge shaggy gray and white coat covering the eyes"],
+  ["Belgian Malinois", "Herding", 4, ["confident", "smart", "hardworking"], "short fawn coat, black mask, lean athletic build"],
+  ["Belgian Tervuren", "Herding", 4, ["intelligent", "alert", "devoted"], "long mahogany coat with black overlay"],
+  ["Australian Cattle Dog", "Herding", 3, ["alert", "curious", "pleasant"], "blue speckled coat, muscular build"],
+  ["Puli", "Herding", 2, ["loyal", "smart", "faithful"], "black corded dreadlock coat"],
+  ["Bouvier des Flandres", "Herding", 5, ["affectionate", "loyal", "gentle"], "rough shaggy black coat, big beard"],
+  ["Briard", "Herding", 5, ["loyal", "confident", "smart"], "long wavy tawny coat, hair over eyes"],
+  ["Bearded Collie", "Herding", 3, ["bouncy", "charismatic", "hardy"], "long shaggy gray coat, beard"],
+  ["Icelandic Sheepdog", "Herding", 3, ["cheerful", "inquisitive", "friendly"], "thick tan coat, curled tail"],
+  ["Catahoula Leopard Dog", "Herding", 4, ["independent", "energetic", "loyal"], "leopard merle spotted coat, glass-blue eyes"],
+];
+
+export const BREEDS = RAW.map(([name, group, size, traits, look]) => ({
+  id: slugify(name),
+  name,
+  group,
+  size,
+  traits,
+  look,
+})).sort((a, b) => a.name.localeCompare(b.name));
+
+export const BREED_BY_ID = Object.fromEntries(BREEDS.map((b) => [b.id, b]));
+
+export const SIZE_LABELS = ["", "Tiny", "Small", "Medium", "Large", "Giant"];
+
+export function slugify(s) {
+  return s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}

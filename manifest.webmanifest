@@ -1,0 +1,10 @@
+{
+  "name": "Doggy Merge",
+  "short_name": "Doggy Merge",
+  "description": "Merge two dog breeds into a brand-new one and build your collection.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#fff8f1",
+  "theme_color": "#ff8a3d",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

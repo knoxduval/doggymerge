@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ff8a3d">
+  <meta name="description" content="Pick two dog breeds, merge them into a brand-new breed, and build your collection.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Doggy Merge">
+  <title>Doggy Merge</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="icon.svg" alt="" class="brand-icon" width="36" height="36">
+      <h1>Doggy Merge</h1>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab is-active" role="tab" aria-selected="true" data-view="merge">Merge</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="collection">
+        Collection <span class="badge" id="collection-count">0</span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Merge view -->
+    <section id="view-merge" class="view is-active" aria-label="Merge dogs">
+      <p class="intro">Pick one dog from each list, then hit <strong>Merge</strong> to create a brand-new breed.</p>
+
+      <div class="pickers">
+        <div class="picker" data-slot="0">
+          <div class="picker-head">
+            <span class="slot-label">Dog 1</span>
+            <div class="selected" aria-live="polite"></div>
+          </div>
+          <div class="picker-tools">
+            <input type="search" class="search" placeholder="Search breeds…" aria-label="Search breeds for dog 1" autocomplete="off">
+            <select class="group-filter" aria-label="Filter dog 1 by group"></select>
+          </div>
+          <ul class="breed-list" role="listbox" aria-label="Breeds for dog 1"></ul>
+        </div>
+
+        <div class="plus" aria-hidden="true">+</div>
+
+        <div class="picker" data-slot="1">
+          <div class="picker-head">
+            <span class="slot-label">Dog 2</span>
+            <div class="selected" aria-live="polite"></div>
+          </div>
+          <div class="picker-tools">
+            <input type="search" class="search" placeholder="Search breeds…" aria-label="Search breeds for dog 2" autocomplete="off">
+            <select class="group-filter" aria-label="Filter dog 2 by group"></select>
+          </div>
+          <ul class="breed-list" role="listbox" aria-label="Breeds for dog 2"></ul>
+        </div>
+      </div>
+
+      <div class="merge-bar">
+        <button class="btn btn-ghost" id="random-btn" type="button">🎲 Surprise me</button>
+        <button class="btn btn-primary" id="merge-btn" type="button" disabled>Merge!</button>
+      </div>
+
+      <article id="result" class="result" hidden>
+        <div class="result-media">
+          <div class="loading" id="loading">
+            <div class="paw-spinner" aria-hidden="true">🐾</div>
+            <p id="loading-text">Mixing the pups…</p>
+          </div>
+          <img id="result-img" alt="" hidden>
+          <div class="img-error" id="img-error" hidden>
+            <p id="img-error-text">The image generator couldn't draw this pup.</p>
+            <button class="btn btn-ghost" id="retry-btn" type="button">Try again</button>
+          </div>
+        </div>
+        <div class="result-body">
+          <p class="result-kicker" id="result-parents"></p>
+          <div class="name-row">
+            <label for="result-name" class="sr-only">Breed name</label>
+            <input id="result-name" class="name-input" maxlength="40" spellcheck="false">
+            <button class="icon-btn" id="shuffle-name" type="button" title="Suggest another name" aria-label="Suggest another name">🔀</button>
+          </div>
+          <p class="result-desc" id="result-desc"></p>
+          <ul class="chips" id="result-chips"></ul>
+          <div class="result-actions">
+            <button class="btn btn-primary" id="save-btn" type="button">➕ Add to collection</button>
+            <button class="btn btn-ghost" id="reroll-btn" type="button">🔄 New image</button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Collection view -->
+    <section id="view-collection" class="view" aria-label="Your collection">
+      <div class="empty" id="collection-empty">
+        <div class="empty-icon" aria-hidden="true">🦴</div>
+        <h2>No dogs yet</h2>
+        <p>Merge two breeds and add the result to start your collection.</p>
+        <button class="btn btn-primary" type="button" data-goto="merge">Start merging</button>
+      </div>
+      <ul class="collection-grid" id="collection-grid"></ul>
+    </section>
+  </main>
+
+  <dialog id="dog-dialog" class="dog-dialog">
+    <form method="dialog" class="dialog-close-form">
+      <button class="icon-btn dialog-close" aria-label="Close">✕</button>
+    </form>
+    <img id="dialog-img" alt="">
+    <div class="dialog-body">
+      <h2 id="dialog-name"></h2>
+      <p class="result-kicker" id="dialog-parents"></p>
+      <p id="dialog-desc"></p>
+      <ul class="chips" id="dialog-chips"></ul>
+      <p class="muted" id="dialog-date"></p>
+      <button class="btn btn-danger" id="dialog-delete" type="button">Remove from collection</button>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
