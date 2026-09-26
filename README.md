@@ -48,4 +48,6 @@ tests/                Node tests for the naming logic
 
 ## Deploying
 
-Any static host works: GitHub Pages, Netlify, Vercel, Cloudflare Pages. For GitHub Pages, enable Pages on the branch and folder containing `index.html`.
+The app is published with GitHub Pages at **https://knoxduval.github.io/doggymerge/**. Pages serves the repository root of the publishing branch (Settings → Pages → Deploy from a branch) and republishes on every push. The empty `.nojekyll` file tells Pages to serve the files as they are, without a Jekyll build.
+
+Any other static host works too (Cloudflare Pages, Vercel, Netlify).
