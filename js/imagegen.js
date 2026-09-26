@@ -8,12 +8,14 @@ const ENDPOINT = "https://image.pollinations.ai/prompt/";
 
 export function buildPrompt(a, b) {
   const size = SIZE_LABELS[mergedSize(a, b)].toLowerCase();
+  const nameA = a.promptName || a.name;
+  const nameB = b.promptName || b.name;
   if (a.id === b.id) {
-    return `Photorealistic portrait photo of a single ${a.name} dog with ${a.look}. ` +
+    return `Photorealistic portrait photo of a single ${nameA} dog with ${a.look}. ` +
       "Sitting on grass outdoors, soft natural light, shallow depth of field, highly detailed fur, adorable, looking at the camera.";
   }
-  return `Photorealistic portrait photo of a single ${size} mixed-breed dog, a ${a.name} and ${b.name} cross. ` +
-    `It blends the ${a.look} of a ${a.name} with the ${b.look} of a ${b.name}. ` +
+  return `Photorealistic portrait photo of a single ${size} mixed-breed dog, a cross between a ${nameA} and a ${nameB}. ` +
+    `It blends the ${a.look} of the ${a.name} with the ${b.look} of the ${b.name}. ` +
     "Sitting on grass outdoors, soft natural light, shallow depth of field, highly detailed fur, adorable, looking at the camera. One dog only.";
 }
 

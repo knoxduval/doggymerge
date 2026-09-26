@@ -295,6 +295,7 @@ function article(word) {
 
 // First phrase of the look, without trailing colour lists ("coat in black, rust and white" → "coat").
 function shortLook(breed) {
+  if (breed.custom) return "family looks"; // a saved dog's look is already a blend
   return breed.look.split(",")[0].replace(/ in [^,]*$/, "").trim();
 }
 

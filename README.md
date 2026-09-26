@@ -11,6 +11,7 @@ Works in any modern browser and adapts to phone (iPhone), tablet (iPad) and desk
 - **Generated names**: well-known crosses get their real names (Labradoodle, Puggle, Pomsky…); every other pair gets an invented name that blends syllables from both breeds (e.g. Rottweiler + Golden Retriever → *Rottriever*). Tap 🔀 for alternatives, or type your own.
 - **AI image** of the new dog, built from both parents' coats and features. Tap **🔄 New image** for a different take.
 - **Collection** saved in your browser (localStorage), with a detail view and a remove option.
+- **Merge your own dogs**: every saved dog appears under "Your dogs" at the top of both lists, so you can keep crossing them with breeds or with each other across generations.
 
 ## Running locally
 
@@ -43,7 +44,8 @@ js/breeds.js          Breed catalogue (group, size, temperament, look)
 js/naming.js          Breed-name generator and description
 js/imagegen.js        Prompt building and image-generator calls
 js/storage.js         Collection persistence
-tests/                Node tests for the naming logic
+js/mydogs.js          Turns saved dogs into mergeable "breeds"
+tests/                Node tests (naming, saved dogs, image retries)
 ```
 
 ## Deploying

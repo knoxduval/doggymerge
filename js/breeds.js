@@ -3,7 +3,7 @@
 // The coat/look text feeds the image prompt so merged dogs inherit visible features.
 const RAW = [
   // Sporting
-  ["Labrador Retriever", "Sporting", 4, ["friendly", "outgoing", "eager"], "short dense coat in yellow, black or chocolate, otter tail, broad head"],
+  ["Labrador Retriever", "Sporting", 4, ["friendly", "outgoing", "eager"], "short dense coat, otter tail, broad head, yellow, black or chocolate color"],
   ["Golden Retriever", "Sporting", 4, ["gentle", "devoted", "playful"], "long wavy golden coat with feathering, soft expression"],
   ["Chesapeake Bay Retriever", "Sporting", 4, ["loyal", "brave", "hardy"], "wavy oily brown coat, amber eyes"],
   ["Flat-Coated Retriever", "Sporting", 4, ["cheerful", "optimistic", "lively"], "glossy flat black coat, long head"],

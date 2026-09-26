@@ -2,6 +2,7 @@ import { BREEDS, BREED_BY_ID, SIZE_LABELS } from "./breeds.js";
 import { nameOptions, describe, mergedSize } from "./naming.js";
 import { buildPrompt, imageUrl, generateImage as fetchImage, newSeed, toThumbnail } from "./imagegen.js";
 import { loadCollection, saveCollection } from "./storage.js";
+import { MY_DOGS_GROUP, dogToBreed, isMyDogId, mixLook, myDogId } from "./mydogs.js";
 
 const GROUP_COLORS = {
   Sporting: "#e8691b",
@@ -13,6 +14,7 @@ const GROUP_COLORS = {
   Herding: "#7b5bc9",
 };
 const GROUPS = Object.keys(GROUP_COLORS);
+GROUP_COLORS[MY_DOGS_GROUP] = "#ff8a3d";
 
 const LOADING_LINES = [
   "Mixing the pups…",
@@ -30,7 +32,18 @@ const state = {
   picks: [null, null], // breed ids
   current: null, // the merge on screen
   collection: loadCollection(),
+  myDogs: [], // saved dogs as mergeable breeds, newest first
 };
+
+// Finds a breed or one of your saved dogs by id.
+function findBreed(id) {
+  return BREED_BY_ID[id] || state.myDogs.find((d) => d.id === id);
+}
+
+function refreshMyDogs() {
+  state.myDogs = state.collection.map((dog) => dogToBreed(dog, findBreed));
+}
+refreshMyDogs();
 
 // ---------- Helpers ----------
 function initials(name) {
@@ -39,6 +52,14 @@ function initials(name) {
 }
 
 function avatar(breed, large = false) {
+  if (breed.custom && breed.thumbnail) {
+    const img = document.createElement("img");
+    img.className = large ? "avatar lg photo" : "avatar photo";
+    img.src = breed.thumbnail;
+    img.alt = "";
+    img.loading = "lazy";
+    return img;
+  }
   const el = document.createElement("span");
   el.className = large ? "avatar lg" : "avatar";
   el.style.background = GROUP_COLORS[breed.group] || "#888";
@@ -59,7 +80,7 @@ function toast(msg) {
   t.textContent = msg;
   t.classList.add("show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
 }
 
 // ---------- Pickers ----------
@@ -67,8 +88,7 @@ const pickers = [...document.querySelectorAll(".picker")];
 
 function setupPicker(picker, slot) {
   const select = $(".group-filter", picker);
-  select.append(el("option", { value: "", textContent: "All groups" }));
-  for (const g of GROUPS) select.append(el("option", { value: g, textContent: g }));
+  renderGroupOptions(select);
 
   $(".search", picker).addEventListener("input", () => renderList(slot));
   select.addEventListener("change", () => renderList(slot));
@@ -82,12 +102,27 @@ function setupPicker(picker, slot) {
   });
 }
 
+// "Your dogs" is offered only once you've saved one.
+function renderGroupOptions(select) {
+  const current = select.value;
+  const groups = state.myDogs.length ? [MY_DOGS_GROUP, ...GROUPS] : GROUPS;
+  select.replaceChildren(
+    el("option", { value: "", textContent: "All groups" }),
+    ...groups.map((g) => el("option", { value: g, textContent: g }))
+  );
+  select.value = groups.includes(current) ? current : "";
+}
+
+function optionMeta(b) {
+  return b.custom ? `${MY_DOGS_GROUP} · ${b.parentNames.join(" + ")}` : `${b.group} · ${SIZE_LABELS[b.size]}`;
+}
+
 function renderList(slot) {
   const picker = pickers[slot];
   const query = $(".search", picker).value.trim().toLowerCase();
   const group = $(".group-filter", picker).value;
   const list = $(".breed-list", picker);
-  const matches = BREEDS.filter(
+  const matches = [...state.myDogs, ...BREEDS].filter(
     (b) => (!group || b.group === group) && (!query || b.name.toLowerCase().includes(query))
   );
 
@@ -97,7 +132,7 @@ function renderList(slot) {
         avatar(b),
         el("span", { className: "opt-text" }, [
           el("span", { className: "opt-name", textContent: b.name }),
-          el("span", { className: "opt-meta", textContent: `${b.group} · ${SIZE_LABELS[b.size]}` }),
+          el("span", { className: "opt-meta", textContent: optionMeta(b) }),
         ]),
       ]);
       btn.dataset.id = b.id;
@@ -111,7 +146,7 @@ function renderList(slot) {
 
 function renderSelected(slot) {
   const box = $(".selected", pickers[slot]);
-  const breed = BREED_BY_ID[state.picks[slot]];
+  const breed = findBreed(state.picks[slot]);
   if (!breed) {
     box.replaceChildren(el("span", { className: "placeholder", textContent: "Choose a breed below" }));
     return;
@@ -120,7 +155,7 @@ function renderSelected(slot) {
     avatar(breed, true),
     el("div", {}, [
       el("div", { className: "sel-name", textContent: breed.name }),
-      el("div", { className: "sel-meta", textContent: `${breed.group} · ${SIZE_LABELS[breed.size]} · ${breed.traits.join(", ")}` }),
+      el("div", { className: "sel-meta", textContent: `${optionMeta(breed)} · ${breed.traits.join(", ")}` }),
     ])
   );
 }
@@ -149,7 +184,7 @@ let activeRequest = null; // AbortController for the image being generated
 let objectUrl = null; // blob URL of the image on screen
 
 function merge() {
-  const [a, b] = state.picks.map((id) => BREED_BY_ID[id]);
+  const [a, b] = state.picks.map(findBreed);
   if (!a || !b) return;
   const names = nameOptions(a, b);
   state.current = {
@@ -160,6 +195,7 @@ function merge() {
     description: describe(a, b),
     size: mergedSize(a, b),
     traits: [...new Set([...a.traits, ...b.traits])].slice(0, 5),
+    look: a.id === b.id ? a.look : mixLook(a, b),
     prompt: buildPrompt(a, b),
     seed: newSeed(),
     saved: false,
@@ -173,7 +209,7 @@ function merge() {
 
 function renderResult() {
   const cur = state.current;
-  const [a, b] = cur.parents.map((id) => BREED_BY_ID[id]);
+  const [a, b] = cur.parents.map(findBreed);
   $("#result-parents").textContent = `${a.name} + ${b.name}`;
   $("#result-name").value = cur.name;
   $("#result-desc").textContent = cur.description;
@@ -261,7 +297,7 @@ async function saveCurrent() {
   if (!cur || cur.saved || !cur.imageReady) return;
   cur.saved = true;
   updateSaveButton();
-  const [a, b] = cur.parents.map((id) => BREED_BY_ID[id]);
+  const [a, b] = cur.parents.map(findBreed);
   const dog = {
     id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
     name: cur.name.trim() || cur.names[0],
@@ -270,6 +306,7 @@ async function saveCurrent() {
     description: cur.description,
     size: cur.size,
     traits: cur.traits,
+    look: cur.look,
     prompt: cur.prompt,
     seed: cur.seed,
     imageUrl: cur.imageUrl,
@@ -279,7 +316,7 @@ async function saveCurrent() {
   if (!saveCollection(state.collection)) {
     toast("Couldn't save. Your browser storage may be full or blocked.");
   } else {
-    toast(`${dog.name} joined your collection! 🐶`);
+    toast(`${dog.name} saved! It's now at the top of both lists. 🐶`);
   }
   renderCollection();
 
@@ -288,11 +325,21 @@ async function saveCurrent() {
   if (thumb) {
     dog.thumbnail = thumb;
     saveCollection(state.collection);
+    renderCollection(); // show the saved photo in the pickers too
   }
 }
 
 // ---------- Collection ----------
 function renderCollection() {
+  refreshMyDogs();
+  // Drop picks of dogs that were removed.
+  state.picks = state.picks.map((id) => (isMyDogId(id) && !findBreed(id) ? null : id));
+  pickers.forEach((p, i) => {
+    renderGroupOptions($(".group-filter", p));
+    renderPicker(i);
+  });
+  updateMergeButton();
+
   const list = state.collection;
   $("#collection-count").textContent = list.length;
   $("#collection-empty").hidden = list.length > 0;
@@ -364,9 +411,10 @@ renderCollection();
 $("#merge-btn").addEventListener("click", merge);
 
 $("#random-btn").addEventListener("click", () => {
-  const a = BREEDS[Math.floor(Math.random() * BREEDS.length)];
+  const pool = [...state.myDogs, ...BREEDS];
+  const a = pool[Math.floor(Math.random() * pool.length)];
   let b;
-  do b = BREEDS[Math.floor(Math.random() * BREEDS.length)]; while (b.id === a.id);
+  do b = pool[Math.floor(Math.random() * pool.length)]; while (b.id === a.id);
   state.picks = [a.id, b.id];
   pickers.forEach((p, i) => {
     $(".search", p).value = "";
