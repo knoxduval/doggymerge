@@ -1,4 +1,5 @@
 import { BREEDS, BREED_BY_ID, SIZE_LABELS } from "./breeds.js";
+import { BREED_PHOTOS } from "./breed-photos.js";
 import { nameOptions, describe, mergedSize } from "./naming.js";
 import { buildPrompt, imageUrl, generateImage as fetchImage, newSeed, toThumbnail } from "./imagegen.js";
 import { loadCollection, saveCollection } from "./storage.js";
@@ -51,21 +52,40 @@ function initials(name) {
   return (words.length > 1 ? words[0][0] + words[words.length - 1][0] : words[0].slice(0, 2)).toUpperCase();
 }
 
+// A breed's photo (a saved dog's own picture), falling back to colored initials.
 function avatar(breed, large = false) {
-  if (breed.custom && breed.thumbnail) {
-    const img = document.createElement("img");
-    img.className = large ? "avatar lg photo" : "avatar photo";
-    img.src = breed.thumbnail;
-    img.alt = "";
-    img.loading = "lazy";
-    return img;
-  }
-  const el = document.createElement("span");
-  el.className = large ? "avatar lg" : "avatar";
-  el.style.background = GROUP_COLORS[breed.group] || "#888";
-  el.textContent = initials(breed.name);
-  el.setAttribute("aria-hidden", "true");
-  return el;
+  const src = breed.custom ? breed.thumbnail : BREED_PHOTOS[breed.id]?.[large ? "photo" : "thumb"];
+  if (!src) return initialsAvatar(breed, large);
+  const img = document.createElement("img");
+  img.className = large ? "avatar lg photo" : "avatar photo";
+  img.src = src;
+  img.alt = "";
+  img.loading = "lazy";
+  img.decoding = "async";
+  img.addEventListener("error", () => img.replaceWith(initialsAvatar(breed, large)), { once: true });
+  return img;
+}
+
+function initialsAvatar(breed, large) {
+  const span = document.createElement("span");
+  span.className = large ? "avatar lg" : "avatar";
+  span.style.background = GROUP_COLORS[breed.group] || "#888";
+  span.textContent = initials(breed.name);
+  span.setAttribute("aria-hidden", "true");
+  return span;
+}
+
+// "Photo: author · license", linking to the photo's page on Wikimedia.
+function photoCredit(breed) {
+  const photo = !breed.custom && BREED_PHOTOS[breed.id];
+  if (!photo) return "";
+  return el("a", {
+    className: "photo-credit",
+    href: photo.source,
+    target: "_blank",
+    rel: "noopener",
+    textContent: `Photo: ${photo.author} · ${photo.license}`,
+  });
 }
 
 function el(tag, props = {}, children = []) {
@@ -153,9 +173,10 @@ function renderSelected(slot) {
   }
   box.replaceChildren(
     avatar(breed, true),
-    el("div", {}, [
+    el("div", { className: "sel-text" }, [
       el("div", { className: "sel-name", textContent: breed.name }),
       el("div", { className: "sel-meta", textContent: `${optionMeta(breed)} · ${breed.traits.join(", ")}` }),
+      photoCredit(breed),
     ])
   );
 }

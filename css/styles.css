@@ -111,7 +111,15 @@ main {
   font-family: var(--font-display); font-weight: 800; font-size: 0.8rem; text-transform: uppercase;
   letter-spacing: 0.08em; color: var(--accent-strong);
 }
-.selected { display: flex; align-items: center; gap: 10px; min-height: 48px; margin-top: 4px; }
+.selected { display: flex; align-items: center; gap: 12px; min-height: 88px; margin-top: 6px; }
+.selected .sel-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.photo-credit {
+  font-size: 0.72rem; color: var(--muted); text-decoration: none; margin-top: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+.photo-credit:hover, .photo-credit:focus-visible { text-decoration: underline; }
+.credits-note { margin: 20px 0 0; font-size: 0.8rem; color: var(--muted); text-align: center; }
+.credits-note a { color: inherit; }
 .selected .placeholder { color: var(--muted); font-style: italic; }
 .selected .sel-name { font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; line-height: 1.15; }
 .selected .sel-meta { font-size: 0.85rem; color: var(--muted); }
@@ -142,10 +150,10 @@ main {
 .no-results { padding: 16px; color: var(--muted); text-align: center; }
 
 .avatar {
-  flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
-  font-family: var(--font-display); font-weight: 800; font-size: 0.9rem; color: #fff;
+  flex: none; width: 56px; height: 56px; border-radius: 12px; display: grid; place-items: center;
+  font-family: var(--font-display); font-weight: 800; font-size: 1rem; color: #fff;
 }
-.avatar.lg { width: 48px; height: 48px; font-size: 1.1rem; }
+.avatar.lg { width: 88px; height: 88px; border-radius: var(--radius-sm); font-size: 1.6rem; }
 
 /* ---------- Merge bar ---------- */
 .merge-bar {

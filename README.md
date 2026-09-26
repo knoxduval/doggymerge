@@ -6,7 +6,7 @@ Works in any modern browser and adapts to phone (iPhone), tablet (iPad) and desk
 
 ## Features
 
-- **Two breed lists** with 138 major breeds, searchable and filterable by group (Sporting, Hound, Working, Terrier, Toy, Non-Sporting, Herding).
+- **Two breed lists** with 138 major breeds and a real photo of each, searchable and filterable by group (Sporting, Hound, Working, Terrier, Toy, Non-Sporting, Herding).
 - **Merge** any two breeds, or tap **🎲 Surprise me** for a random pair.
 - **Generated names**: well-known crosses get their real names (Labradoodle, Puggle, Pomsky…); every other pair gets an invented name that blends syllables from both breeds (e.g. Rottweiler + Golden Retriever → *Rottriever*). Tap 🔀 for alternatives, or type your own.
 - **AI image** of the new dog, built from both parents' coats and features. Tap **🔄 New image** for a different take.
@@ -34,6 +34,18 @@ Images come from [Pollinations](https://pollinations.ai), which is free and need
 
 When you save a dog, the app also tries to store a small thumbnail of the image in the collection, so saved dogs keep their picture even if the generator changes.
 
+## Breed photos
+
+Each breed's photo is the lead image of its Wikipedia article (or a hand-picked Wikimedia Commons photo where that image didn't suit), stored as small copies in `images/breeds/`. Authors and licenses are listed in [CREDITS.md](CREDITS.md), and the selected breed shows its photo credit in the app.
+
+To refresh the photos or add a breed, run:
+
+```sh
+node scripts/fetch-breed-photos.mjs
+```
+
+It only downloads photos that aren't already in `images/breeds/`; delete a file to fetch it again. Set a breed's Wikipedia article in `TITLES` or a specific photo in `FILES` at the top of the script.
+
 ## Project layout
 
 ```
@@ -45,6 +57,10 @@ js/naming.js          Breed-name generator and description
 js/imagegen.js        Prompt building and image-generator calls
 js/storage.js         Collection persistence
 js/mydogs.js          Turns saved dogs into mergeable "breeds"
+js/breed-photos.js    Generated: photo paths and credits for each breed
+images/breeds/        Breed photos (120px for lists, 330px for the selected breed)
+scripts/              Photo lookup script
+CREDITS.md            Generated: photo authors and licenses
 tests/                Node tests (naming, saved dogs, image retries)
 ```
 
