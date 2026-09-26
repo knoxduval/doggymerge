@@ -212,11 +212,12 @@ async function generateImage() {
   }, 2200);
 
   try {
-    await loadImage(url);
+    const loaded = await loadImage(url);
     if (token !== loadToken) return; // a newer request replaced this one
-    img.src = url;
-    img.alt = `AI-generated picture of a ${cur.name}`;
-    img.hidden = false;
+    // Show the image we already downloaded instead of requesting it a second time.
+    loaded.id = "result-img";
+    loaded.alt = `AI-generated picture of a ${cur.name}`;
+    img.replaceWith(loaded);
     cur.imageReady = true;
   } catch (err) {
     if (token !== loadToken) return;
