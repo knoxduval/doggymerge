@@ -182,7 +182,7 @@ main {
 /* ---------- Result ---------- */
 .result {
   margin-top: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-  box-shadow: var(--shadow); overflow: hidden; display: grid; grid-template-columns: 1fr;
+  box-shadow: var(--shadow); overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr);
   animation: pop-in .35s ease;
   scroll-margin-top: 80px;
 }
@@ -196,6 +196,8 @@ main {
   gap: 10px; text-align: center; padding: 20px; color: var(--muted);
 }
 .loading p, .img-error p { margin: 0; font-weight: 700; }
+.loading .loading-note { font-weight: 600; font-size: 0.9rem; max-width: 28ch; min-height: 1.5em; }
+.img-error p { max-width: 34ch; }
 .paw-spinner { font-size: 3rem; animation: bounce 1s ease-in-out infinite; }
 @keyframes bounce { 0%, 100% { transform: translateY(0) rotate(-10deg); } 50% { transform: translateY(-14px) rotate(10deg); } }
 
@@ -203,7 +205,7 @@ main {
 .result-kicker { margin: 0; font-size: 0.9rem; font-weight: 700; color: var(--accent-strong); }
 .name-row { display: flex; gap: 8px; align-items: center; }
 .name-input {
-  flex: 1; min-width: 0; font-family: var(--font-display); font-weight: 800; font-size: 2rem; line-height: 1.1;
+  flex: 1; min-width: 0; width: 100%; font-family: var(--font-display); font-weight: 800; font-size: 2rem; line-height: 1.1;
   border: 1px dashed transparent; background: transparent; border-radius: var(--radius-sm); padding: 4px 6px; margin-left: -6px;
 }
 .name-input:hover { border-color: var(--border); }
@@ -276,9 +278,6 @@ main {
   .collection-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
-@media (max-width: 380px) {
-  .name-input { font-size: 1.6rem; }
-}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -290,4 +289,9 @@ main {
   .brand { width: 100%; justify-content: center; }
   .tabs { width: 100%; }
   .tab { flex: 1; justify-content: center; }
+  .name-input { font-size: 1.7rem; }
+}
+
+@media (max-width: 380px) {
+  .name-input { font-size: 1.45rem; }
 }

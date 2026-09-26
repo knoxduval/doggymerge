@@ -1,6 +1,6 @@
 import { BREEDS, BREED_BY_ID, SIZE_LABELS } from "./breeds.js";
 import { nameOptions, describe, mergedSize } from "./naming.js";
-import { buildPrompt, imageUrl, loadImage, newSeed, toThumbnail } from "./imagegen.js";
+import { buildPrompt, imageUrl, generateImage as fetchImage, newSeed, toThumbnail } from "./imagegen.js";
 import { loadCollection, saveCollection } from "./storage.js";
 
 const GROUP_COLORS = {
@@ -145,7 +145,8 @@ function scrollPickIntoView(slot) {
 
 // ---------- Merge ----------
 let loadingTimer;
-let loadToken = 0;
+let activeRequest = null; // AbortController for the image being generated
+let objectUrl = null; // blob URL of the image on screen
 
 function merge() {
   const [a, b] = state.picks.map((id) => BREED_BY_ID[id]);
@@ -189,17 +190,29 @@ function updateSaveButton() {
   btn.textContent = state.current.saved ? "✓ In your collection" : "➕ Add to collection";
 }
 
+const RETRY_NOTES = {
+  busy: "The image service is busy, so we're waiting our turn",
+  server: "The image service hit a snag, so we're trying again",
+  timeout: "That took too long, so we're trying again",
+  network: "Couldn't connect, so we're trying again",
+};
+
 async function generateImage() {
   const cur = state.current;
-  const token = ++loadToken;
-  const img = $("#result-img");
+  // Cancel any picture still being drawn: the free service only allows one at a time.
+  activeRequest?.abort();
+  const request = new AbortController();
+  activeRequest = request;
+
   const url = imageUrl(cur.prompt, cur.seed);
   cur.imageUrl = url;
+  cur.imageBlob = null;
   cur.imageReady = false;
 
-  img.hidden = true;
+  $("#result-img").hidden = true;
   $("#img-error").hidden = true;
   $("#loading").hidden = false;
+  $("#loading-note").textContent = "";
   $("#save-btn").disabled = true;
   $("#reroll-btn").disabled = true;
 
@@ -212,19 +225,28 @@ async function generateImage() {
   }, 2200);
 
   try {
-    const loaded = await loadImage(url);
-    if (token !== loadToken) return; // a newer request replaced this one
-    // Show the image we already downloaded instead of requesting it a second time.
-    loaded.id = "result-img";
-    loaded.alt = `AI-generated picture of a ${cur.name}`;
-    img.replaceWith(loaded);
+    const blob = await fetchImage(url, {
+      signal: request.signal,
+      onRetry: ({ kind, attempt }) => {
+        $("#loading-note").textContent = `${RETRY_NOTES[kind]} (attempt ${attempt})…`;
+      },
+    });
+    if (request !== activeRequest) return;
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = URL.createObjectURL(blob);
+    const img = $("#result-img");
+    img.src = objectUrl;
+    img.alt = `AI-generated picture of a ${cur.name}`;
+    img.hidden = false;
+    cur.imageBlob = blob;
     cur.imageReady = true;
   } catch (err) {
-    if (token !== loadToken) return;
+    if (request !== activeRequest) return; // replaced by a newer merge
     $("#img-error-text").textContent = err.message;
     $("#img-error").hidden = false;
   } finally {
-    if (token === loadToken) {
+    if (request === activeRequest) {
+      activeRequest = null;
       clearInterval(loadingTimer);
       $("#loading").hidden = true;
       $("#reroll-btn").disabled = false;
@@ -262,7 +284,7 @@ async function saveCurrent() {
   renderCollection();
 
   // Embed a thumbnail so the picture survives even if the generator changes.
-  const thumb = await toThumbnail(cur.imageUrl);
+  const thumb = cur.imageBlob && (await toThumbnail(cur.imageBlob));
   if (thumb) {
     dog.thumbnail = thumb;
     saveCollection(state.collection);
